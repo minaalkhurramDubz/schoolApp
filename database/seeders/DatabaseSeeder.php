@@ -33,14 +33,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Plan::create([
-    'name' => 'Pro',
+            'name' => 'Pro',
 
-    'max_schools' => 5,
-    'max_classes' => 100,
-    'max_teachers' => 200,
-    'max_students' => 2000,
-    'max_courses' => 500,
-]);
+            'max_schools' => 5,
+            'max_classes' => 100,
+            'max_teachers' => 200,
+            'max_students' => 2000,
+            'max_courses' => 500,
+        ]);
 
         // creating the owner
         // Create owner

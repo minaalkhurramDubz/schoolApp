@@ -9,7 +9,8 @@ class Plan extends Model
 {
     //
     use HasRoles;
-// the rows, attirbutes of plan table 
+
+    // the rows, attirbutes of plan table
     protected $fillable = [
         'name',
         'max_admins',
@@ -20,7 +21,7 @@ class Plan extends Model
         'max_courses',
     ];
 
-    // this rs links plans to owners 
+    // this rs links plans to owners
     public function owners()
     {
         return $this->hasMany(User::class, 'plan_id');
