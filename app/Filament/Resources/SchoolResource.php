@@ -3,15 +3,15 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SchoolResource\Pages;
-use App\Filament\Resources\SchoolResource\RelationManagers;
 use App\Models\School;
-use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SchoolResource extends Resource
 {
@@ -23,7 +23,17 @@ class SchoolResource extends Resource
     {
         return $form
             ->schema([
-                //
+                TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+
+                TextInput::make('slug')
+                    ->required()
+                    ->unique(School::class, 'slug', ignoreRecord: true),
+
+                Select::make('plan_id')
+                    ->relationship('plan', 'name')
+                    ->required(),
             ]);
     }
 
@@ -31,7 +41,9 @@ class SchoolResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('name')->searchable(),
+                TextColumn::make('slug')->searchable(),
+                TextColumn::make('plan.name')->label('Plan'),
             ])
             ->filters([
                 //
@@ -60,5 +72,14 @@ class SchoolResource extends Resource
             'create' => Pages\CreateSchool::route('/create'),
             'edit' => Pages\EditSchool::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        // tenant scoping
+        return parent::getEloquentQuery()
+            ->whereHas('users', function ($query) {
+                $query->where('user_id', auth()->id());
+            });
     }
 }

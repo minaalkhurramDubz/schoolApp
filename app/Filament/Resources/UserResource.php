@@ -3,15 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
-use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Spatie\Permission\Models\Role;
+
 
 class UserResource extends Resource
 {
@@ -21,29 +23,29 @@ class UserResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                //
-            ]);
+       return $form->schema([
+            // Basic user info
+            TextInput::make('name')->required()->maxLength(255),
+            TextInput::make('email')->required()->email()->unique(User::class, 'email', ignoreRecord: true),
+
+            // Role assignment
+            Select::make('roles')
+                ->multiple()
+                ->options(Role::all()->pluck('name', 'name')->toArray())
+                ->required(),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                //
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+        return $table->columns([
+            TextColumn::make('name')->searchable(),
+            TextColumn::make('email')->searchable(),
+            TextColumn::make('roles.name')->label('Roles'),
+        ])
+        ->actions([
+            Tables\Actions\EditAction::make(),
+        ]);
     }
 
     public static function getRelations(): array
@@ -52,7 +54,6 @@ class UserResource extends Resource
             //
         ];
     }
-
     public static function getPages(): array
     {
         return [
@@ -60,5 +61,12 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+     public static function getEloquentQuery(): Builder
+    {
+        // Scope to users in same school as current user
+        return parent::getEloquentQuery()
+            ->whereHas('schools', fn($q) => $q->where('user_id', auth()->id()));
     }
 }

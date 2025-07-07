@@ -3,15 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlanResource\Pages;
-use App\Filament\Resources\PlanResource\RelationManagers;
 use App\Models\Plan;
-use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlanResource extends Resource
 {
@@ -21,29 +19,31 @@ class PlanResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                //
-            ]);
+          return $form->schema([
+            // Plan name
+            TextInput::make('name')
+                ->required()
+                ->maxLength(100),
+
+            // Numeric limits
+            TextInput::make('max_schools')->numeric()->required(),
+            TextInput::make('max_classes')->numeric()->required(),
+            TextInput::make('max_teachers')->numeric()->required(),
+            TextInput::make('max_students')->numeric()->required(),
+            TextInput::make('max_courses')->numeric()->required(),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                //
-            ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+        return $table->columns([
+            TextColumn::make('name')->searchable(),
+            TextColumn::make('max_schools')->label('Schools'),
+            TextColumn::make('max_classes')->label('Classes'),
+            TextColumn::make('max_teachers')->label('Teachers'),
+            TextColumn::make('max_students')->label('Students'),
+            TextColumn::make('max_courses')->label('Courses'),
+        ]);
     }
 
     public static function getRelations(): array

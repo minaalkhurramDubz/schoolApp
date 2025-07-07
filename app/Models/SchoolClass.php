@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class SchoolClass extends Model
+{
+    use HasFactory;
+
+     protected $table = 'classes';
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'school_id',
+    ];
+
+    /**
+     * A class belongs to a single school.
+     */
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
+     * A class can have many students (users with “student” role).
+     */
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'class_user')
+                    ->withTimestamps()
+                    ->wherePivot('role', 'student');
+    }
+
+    /**
+     * A class can have many teachers.
+     */
+    public function teachers()
+    {
+        return $this->belongsToMany(User::class, 'class_user')
+                    ->withTimestamps()
+                    ->wherePivot('role', 'teacher');
+    }
+
+    /**
+     * A class can offer many courses.
+     */
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'class_course')
+                    ->withTimestamps();
+    }
+}

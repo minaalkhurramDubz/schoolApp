@@ -2,42 +2,52 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CourseResource\Pages;
-use App\Models\Course;
+use App\Filament\Resources\ClassResource\Pages;
+use App\Filament\Resources\ClassResource\RelationManagers;
+use App\Models\SchoolClass;
+use App\Models\School;
+use Filament\Forms;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
+use Filament\Forms\Form;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
-
-class CourseResource extends Resource
+class ClassResource extends Resource
 {
-    protected static ?string $model = Course::class;
+    protected static ?string $model = SchoolClass::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
-        return $form->schema([
-            // Course name
+         return $form->schema([
+            // Class name input
             TextInput::make('name')
                 ->required()
                 ->maxLength(255),
 
-            // Slug for friendly URLs
+            // Unique slug
             TextInput::make('slug')
                 ->required()
-                ->unique(Course::class, 'slug', ignoreRecord: true),
+              ->unique(SchoolClass::class, 'slug', ignoreRecord: true),
+
+            // Select the school this class belongs to
+            Select::make('school_id')
+                ->relationship('school', 'name')
+                ->required(),
         ]);
+
     }
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
+                return $table->columns([
             TextColumn::make('name')->searchable(),
             TextColumn::make('slug')->searchable(),
+            TextColumn::make('school.name')->label('School'),
         ])
             ->filters([
                 //
@@ -58,20 +68,18 @@ class CourseResource extends Resource
             //
         ];
     }
-
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCourses::route('/'),
-            'create' => Pages\CreateCourse::route('/create'),
-            'edit' => Pages\EditCourse::route('/{record}/edit'),
+            'index' => Pages\ListClasses::route('/'),
+            'create' => Pages\CreateClasses::route('/create'),
+            'edit' => Pages\EditClasses::route('/{record}/edit'),
         ];
     }
-
-    public static function getEloquentQuery(): Builder
+   public static function getEloquentQuery(): Builder
     {
-        // Only courses tied to classes in user's schools
+        // Tenant scoping: only classes under user's schools
         return parent::getEloquentQuery()
-            ->whereHas('classes.school.users', fn ($q) => $q->where('user_id', auth()->id()));
+            ->whereHas('school.users', fn($q) => $q->where('user_id', auth()->id()));
     }
 }
