@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class SchoolClass extends Model
 {
     use HasFactory;
 
-     protected $table = 'classes';
+    protected $table = 'classes';
 
     protected $fillable = [
         'name',
@@ -31,8 +31,8 @@ class SchoolClass extends Model
     public function students()
     {
         return $this->belongsToMany(User::class, 'class_user')
-                    ->withTimestamps()
-                    ->wherePivot('role', 'student');
+            ->withTimestamps()
+            ->wherePivot('role', 'student');
     }
 
     /**
@@ -41,8 +41,8 @@ class SchoolClass extends Model
     public function teachers()
     {
         return $this->belongsToMany(User::class, 'class_user')
-                    ->withTimestamps()
-                    ->wherePivot('role', 'teacher');
+            ->withTimestamps()
+            ->wherePivot('role', 'teacher');
     }
 
     /**
@@ -51,6 +51,6 @@ class SchoolClass extends Model
     public function courses()
     {
         return $this->belongsToMany(Course::class, 'class_course')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 }

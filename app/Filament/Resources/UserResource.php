@@ -14,7 +14,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Role;
 
-
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -23,7 +22,7 @@ class UserResource extends Resource
 
     public static function form(Form $form): Form
     {
-       return $form->schema([
+        return $form->schema([
             // Basic user info
             TextInput::make('name')->required()->maxLength(255),
             TextInput::make('email')->required()->email()->unique(User::class, 'email', ignoreRecord: true),
@@ -43,9 +42,9 @@ class UserResource extends Resource
             TextColumn::make('email')->searchable(),
             TextColumn::make('roles.name')->label('Roles'),
         ])
-        ->actions([
-            Tables\Actions\EditAction::make(),
-        ]);
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ]);
     }
 
     public static function getRelations(): array
@@ -54,6 +53,7 @@ class UserResource extends Resource
             //
         ];
     }
+
     public static function getPages(): array
     {
         return [
@@ -63,10 +63,10 @@ class UserResource extends Resource
         ];
     }
 
-     public static function getEloquentQuery(): Builder
+    public static function getEloquentQuery(): Builder
     {
         // Scope to users in same school as current user
         return parent::getEloquentQuery()
-            ->whereHas('schools', fn($q) => $q->where('user_id', auth()->id()));
+            ->whereHas('schools', fn ($q) => $q->where('user_id', auth()->id()));
     }
 }

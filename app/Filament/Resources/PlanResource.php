@@ -7,7 +7,6 @@ use App\Models\Plan;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -19,7 +18,7 @@ class PlanResource extends Resource
 
     public static function form(Form $form): Form
     {
-          return $form->schema([
+        return $form->schema([
             // Plan name
             TextInput::make('name')
                 ->required()

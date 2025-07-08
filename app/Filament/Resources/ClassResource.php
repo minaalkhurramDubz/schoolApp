@@ -3,18 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ClassResource\Pages;
-use App\Filament\Resources\ClassResource\RelationManagers;
-use App\Models\SchoolClass;
 use App\Models\School;
-use Filament\Forms;
-use Filament\Forms\Components\TextInput;
+use App\Models\SchoolClass;
 use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+
 class ClassResource extends Resource
 {
     protected static ?string $model = SchoolClass::class;
@@ -23,7 +22,7 @@ class ClassResource extends Resource
 
     public static function form(Form $form): Form
     {
-         return $form->schema([
+        return $form->schema([
             // Class name input
             TextInput::make('name')
                 ->required()
@@ -32,7 +31,7 @@ class ClassResource extends Resource
             // Unique slug
             TextInput::make('slug')
                 ->required()
-              ->unique(SchoolClass::class, 'slug', ignoreRecord: true),
+                ->unique(SchoolClass::class, 'slug', ignoreRecord: true),
 
             // Select the school this class belongs to
             Select::make('school_id')
@@ -44,7 +43,7 @@ class ClassResource extends Resource
 
     public static function table(Table $table): Table
     {
-                return $table->columns([
+        return $table->columns([
             TextColumn::make('name')->searchable(),
             TextColumn::make('slug')->searchable(),
             TextColumn::make('school.name')->label('School'),
@@ -68,6 +67,7 @@ class ClassResource extends Resource
             //
         ];
     }
+
     public static function getPages(): array
     {
         return [
@@ -76,10 +76,11 @@ class ClassResource extends Resource
             'edit' => Pages\EditClasses::route('/{record}/edit'),
         ];
     }
-   public static function getEloquentQuery(): Builder
+
+    public static function getEloquentQuery(): Builder
     {
         // Tenant scoping: only classes under user's schools
         return parent::getEloquentQuery()
-            ->whereHas('school.users', fn($q) => $q->where('user_id', auth()->id()));
+            ->whereHas('school.users', fn ($q) => $q->where('user_id', auth()->id()));
     }
 }
