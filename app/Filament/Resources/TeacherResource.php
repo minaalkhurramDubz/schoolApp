@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\TeacherResource\Pages;
 use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,7 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Role;
 
-class UserResource extends Resource
+class TeacherResource extends Resource
 {
     protected static ?string $model = User::class;
 
@@ -57,25 +57,33 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => Pages\ListTeachers::route('/'),
+            'create' => Pages\CreateTeacher::route('/create'),
+            'edit' => Pages\EditTeacher::route('/{record}/edit'),
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
-
-        // the owner should be able to see all teachers and students
-
         $user = auth()->user();
+
         if ($user->hasRole('owner')) {
-            // Admin sees all schools
-            return parent::getEloquentQuery();
+            // Get IDs of schools the current user owns
+            $schoolIds = \DB::table('school_user')
+                ->where('user_id', $user->id)
+                ->where('role', 'owner')
+                ->pluck('school_id');
+
+            // Return teachers who are in those schools
+            return parent::getEloquentQuery()
+                ->whereHas('schools', function ($query) use ($schoolIds) {
+                    $query->whereIn('schools.id', $schoolIds);
+                })
+                ->whereHas('roles', fn ($q) => $q->where('name', 'teacher'));
         }
 
-        // Scope to users in same school as current user
-        //     return parent::getEloquentQuery()//->withoutGlobalScopes();
-        //    ->whereHas('schools', fn ($q) => $q->where('user_id', auth()->id()));
+        // Default: show all teachers
+        return parent::getEloquentQuery()
+            ->whereHas('roles', fn ($q) => $q->where('name', 'teacher'));
     }
 }

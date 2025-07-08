@@ -74,12 +74,32 @@ class SchoolResource extends Resource
         ];
     }
 
+    // tenant scoping
     public static function getEloquentQuery(): Builder
     {
-        // tenant scoping
-        return parent::getEloquentQuery()
-            ->whereHas('users', function ($query) {
-                $query->where('user_id', auth()->id());
-            });
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            // Admin sees all schools
+            return parent::getEloquentQuery();
+        }
+
+        if ($user->hasRole('owner')) {
+            // Owner sees only their own schools
+            return parent::getEloquentQuery()
+                ->whereHas('users', function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->where('role', 'owner');
+                });
+        }
+
+        // All other roles see nothing
+        return parent::getEloquentQuery()->whereRaw('1 = 0');
+
+        // return parent::getEloquentQuery()
+        //     ->whereHas('users', function ($query) {
+        //         $query->where('user_id', auth()->id())
+        //             ->whereIn('role', ['owner', 'admin']);
+        //     });
     }
 }
