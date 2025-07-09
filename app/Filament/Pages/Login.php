@@ -77,7 +77,7 @@ class Login extends Page
         );
 
         $url = URL::temporarySignedRoute(
-            'filament.auth.pages.login',
+            'filament.auth.auth.login',
             now()->addMinutes(15),
             ['email' => $user->email]
         );

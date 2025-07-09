@@ -77,14 +77,15 @@ class SchoolResource extends Resource
     // tenant scoping
     public static function getEloquentQuery(): Builder
     {
+        // only show students owned by a peson
         $user = auth()->user();
 
-        if ($user->hasRole('admin')) {
-            // Admin sees all schools
-            return parent::getEloquentQuery();
-        }
+        // if ($user->hasRole('admin')) {
+        //     // Admin sees all schools
+        //     return parent::getEloquentQuery();
+        // }
 
-        if ($user->hasRole('owner')) {
+        if ($user->hasRole('owner') || $user->hasRole('admin')) {
             // Owner sees only their own schools
             return parent::getEloquentQuery()
                 ->whereHas('users', function ($query) use ($user) {
@@ -96,10 +97,5 @@ class SchoolResource extends Resource
         // All other roles see nothing
         return parent::getEloquentQuery()->whereRaw('1 = 0');
 
-        // return parent::getEloquentQuery()
-        //     ->whereHas('users', function ($query) {
-        //         $query->where('user_id', auth()->id())
-        //             ->whereIn('role', ['owner', 'admin']);
-        //     });
     }
 }

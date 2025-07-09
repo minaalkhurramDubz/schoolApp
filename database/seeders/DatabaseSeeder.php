@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Course;
 use App\Models\Plan;
 use App\Models\School;
+use App\Models\SchoolClass;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -90,6 +92,40 @@ class DatabaseSeeder extends Seeder
                 $student->assignRole('student');
                 $school->users()->attach($student->id, ['role' => 'student']);
             }
+
+            // Create Courses for this school
+            for ($c = 1; $c <= 3; $c++) {
+                Course::create([
+                    'name' => "Course{$c}_School{$i}",
+                    'slug' => Str::slug("Course{$c}_School{$i}"),
+                    'school_id' => $school->id,
+                ]);
+            }
+
+            // Create Classes
+            $classIds = [];
+            for ($cl = 1; $cl <= 2; $cl++) {
+                $class = SchoolClass::create([
+                    'name' => "Class{$cl}_School{$i}",
+                    'slug' => Str::slug("Class{$cl}_School{$i}"),
+                    'school_id' => $school->id,
+                ]);
+                $classIds[] = $class->id;
+            }
+
+            // Attach all courses to all classes for now
+            $courses = Course::where('school_id', $school->id)->get();
+            foreach ($classIds as $classId) {
+                foreach ($courses as $course) {
+                    \DB::table('class_course')->insertOrIgnore([
+                        'class_id' => $classId,
+                        'course_id' => $course->id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
         }
+
     }
 }

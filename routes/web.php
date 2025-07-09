@@ -9,8 +9,8 @@ Route::get('/', function () {
 
 // route for custom login
 
-Route::get('/admin/login', [Login::class, '__invoke'])
-    ->name('filament.auth.pages.login');
-
 // Route::get('/admin/login', [Login::class, '__invoke'])
-//     ->name('filament.auth.auth.login');
+//     ->name('filament.admin.pages.login');
+
+Route::get('/admin/login', [Login::class, '__invoke'])
+    ->name('filament.auth.auth.login');

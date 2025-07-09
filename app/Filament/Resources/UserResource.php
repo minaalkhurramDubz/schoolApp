@@ -35,6 +35,13 @@ class UserResource extends Resource
         ]);
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return $user && $user->hasAnyRole(['owner', 'admin']);
+    }
+
     public static function table(Table $table): Table
     {
         return $table->columns([
@@ -70,8 +77,12 @@ class UserResource extends Resource
 
         $user = auth()->user();
         if ($user->hasRole('owner')) {
-            // Admin sees all schools
-            return parent::getEloquentQuery();
+            // owner sees
+            return parent::getEloquentQuery()
+                ->whereHas('users', function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->where('role', 'owner');
+                });
         }
 
         // Scope to users in same school as current user

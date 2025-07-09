@@ -20,6 +20,14 @@ class StudentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $label = 'Student';
+
+    protected static ?string $pluralLabel = 'Students';
+
+    protected static ?string $navigationLabel = 'Students';
+
+    protected static ?string $slug = 'students';
+
     public static function form(Form $form): Form
     {
         return $form->schema([
