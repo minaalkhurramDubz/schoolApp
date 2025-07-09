@@ -73,7 +73,8 @@ class UserResource extends Resource
     public static function getEloquentQuery(): Builder
     {
 
-        // the owner should be able to see all teachers and students
+        // the owner should be able to see all users
+        // users resource not visible to anyone other than admin and owner
 
         $user = auth()->user();
         if ($user->hasRole('owner')) {
@@ -85,8 +86,5 @@ class UserResource extends Resource
                 });
         }
 
-        // Scope to users in same school as current user
-        //     return parent::getEloquentQuery()//->withoutGlobalScopes();
-        //    ->whereHas('schools', fn ($q) => $q->where('user_id', auth()->id()));
     }
 }

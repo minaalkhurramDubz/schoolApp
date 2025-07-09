@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
@@ -34,7 +35,10 @@ class Login extends Page
                     ->title('Login Successful')
                     ->send();
 
-                $this->redirect(filament()->getUrl());
+                // checking the schools and redirecting the url
+                $this->sessionCheckAndRedirect($user);
+
+                //  $this->redirect(filament()->getUrl());
             } else {
                 Notification::make()
                     ->danger()
@@ -93,5 +97,32 @@ class Login extends Page
             ->success()
             ->title('Check your email for the login link!')
             ->send();
+    }
+
+    private function sessionCheckAndRedirect(User $user): void
+    {
+        // ✅ Check how many schools this user belongs to:
+        $schools = DB::table('school_user')
+            ->where('user_id', $user->id)
+            ->pluck('school_id');
+
+        if ($schools->count() === 1) {
+            // Only one school → save it to session
+            session(['active_school_id' => $schools->first()]);
+
+            $this->redirect(filament()->getUrl());
+        } elseif ($schools->count() > 1) {
+            // More than one → redirect them to choose
+            $this->redirect(route('filament.auth.pages.choose-school'));
+        } else {
+            // No schools at all
+            Notification::make()
+                ->danger()
+                ->title('No schools assigned to your account.')
+                ->send();
+
+            Auth::logout();
+            $this->redirect(route('filament.auth.auth.login'));
+        }
     }
 }
