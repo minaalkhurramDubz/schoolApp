@@ -42,12 +42,14 @@ class TeacherResource extends Resource
                 ->required(),
         ]);
     }
-  public static function shouldRegisterNavigation(): bool
-    {
-        $user = auth()->user();
 
-        return $user && $user->hasAnyRole(['owner', 'admin']);
-    }
+  public static function shouldRegisterNavigation(): bool
+{
+    $role = session('active_role');
+
+    return in_array($role, ['teacher', 'admin', 'owner']);
+}
+
     public static function table(Table $table): Table
     {
         return $table->columns([
@@ -78,25 +80,26 @@ class TeacherResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
+        
+        $query = parent::getEloquentQuery();
 
-        if ($user->hasRole('owner')) {
-            // Get IDs of schools the current user owns
-            $schoolIds = \DB::table('school_user')
-                ->where('user_id', $user->id)
-                ->where('role', 'owner')
-                ->pluck('school_id');
+        if (session()->has('active_school_id')) {
+            $schoolId = session('active_school_id');
 
-            // Return teachers who are in those schools
-            return parent::getEloquentQuery()
-                ->whereHas('schools', function ($query) use ($schoolIds) {
-                    $query->whereIn('schools.id', $schoolIds);
-                })
-                ->whereHas('roles', fn ($q) => $q->where('name', 'teacher'));
+            return $query->whereHas('schools', function ($q) use ($schoolId) {
+                $q->where('schools.id', $schoolId)
+                    ->where('school_user.role', 'teacher');
+            });
         }
 
-        // Default: show all teachers
-        return parent::getEloquentQuery()
-            ->whereHas('roles', fn ($q) => $q->where('name', 'teacher'));
+        // Optional: return empty result if no school picked
+        return $query->whereRaw('0=1');
     }
+
+    // public static function canViewAny(): bool
+    // {
+             
+
+    //     return auth()->check() && session()->has('active_role');
+    // }
 }

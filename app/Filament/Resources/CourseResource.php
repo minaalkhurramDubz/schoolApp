@@ -74,7 +74,8 @@ class CourseResource extends Resource
         return parent::getEloquentQuery()
             ->whereHas('classes.school.users', fn ($q) => $q->where('user_id', auth()->id()));
     }
-      public static function shouldRegisterNavigation(): bool
+
+    public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 

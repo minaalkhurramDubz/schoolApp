@@ -67,7 +67,8 @@ class ClassResource extends Resource
             //
         ];
     }
-      public static function shouldRegisterNavigation(): bool
+
+    public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 
@@ -82,7 +83,6 @@ class ClassResource extends Resource
             'edit' => Pages\EditClasses::route('/{record}/edit'),
         ];
     }
-    
 
     public static function getEloquentQuery(): Builder
     {

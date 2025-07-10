@@ -42,12 +42,14 @@ class StudentResource extends Resource
                 ->required(),
         ]);
     }
-  public static function shouldRegisterNavigation(): bool
+
+    public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 
         return $user && $user->hasAnyRole(['owner', 'admin']);
     }
+
     public static function table(Table $table): Table
     {
         return $table->columns([

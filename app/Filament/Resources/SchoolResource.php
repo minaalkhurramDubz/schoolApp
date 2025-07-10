@@ -98,7 +98,8 @@ class SchoolResource extends Resource
         return parent::getEloquentQuery()->whereRaw('1 = 0');
 
     }
-      public static function shouldRegisterNavigation(): bool
+
+    public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 

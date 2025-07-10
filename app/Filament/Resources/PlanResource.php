@@ -32,7 +32,8 @@ class PlanResource extends Resource
             TextInput::make('max_courses')->numeric()->required(),
         ]);
     }
-      public static function shouldRegisterNavigation(): bool
+
+    public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 
