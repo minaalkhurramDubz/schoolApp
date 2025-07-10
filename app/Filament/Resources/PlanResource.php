@@ -32,6 +32,12 @@ class PlanResource extends Resource
             TextInput::make('max_courses')->numeric()->required(),
         ]);
     }
+      public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return $user && $user->hasAnyRole(['owner', 'admin']);
+    }
 
     public static function table(Table $table): Table
     {

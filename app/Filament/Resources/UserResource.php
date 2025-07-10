@@ -34,6 +34,10 @@ class UserResource extends Resource
                 ->required(),
         ]);
     }
+       public static function canViewAny(): bool
+    {
+        return auth()->check() && session()->has('active_role');
+    }
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -41,6 +45,7 @@ class UserResource extends Resource
 
         return $user && $user->hasAnyRole(['owner', 'admin']);
     }
+
 
     public static function table(Table $table): Table
     {

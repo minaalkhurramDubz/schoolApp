@@ -67,6 +67,12 @@ class ClassResource extends Resource
             //
         ];
     }
+      public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return $user && $user->hasAnyRole(['owner', 'admin']);
+    }
 
     public static function getPages(): array
     {
@@ -76,6 +82,7 @@ class ClassResource extends Resource
             'edit' => Pages\EditClasses::route('/{record}/edit'),
         ];
     }
+    
 
     public static function getEloquentQuery(): Builder
     {
