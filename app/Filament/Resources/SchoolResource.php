@@ -77,7 +77,7 @@ class SchoolResource extends Resource
     // tenant scoping
     public static function getEloquentQuery(): Builder
     {
-        // only show students owned by a peson
+        // only show schools owned by a peson
         $user = auth()->user();
 
         // if ($user->hasRole('admin')) {

@@ -45,9 +45,9 @@ class StudentResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        $user = auth()->user();
+        $role = session('active_role');
 
-        return $user && $user->hasAnyRole(['owner', 'admin']);
+        return in_array($role, ['teacher', 'admin', 'owner']);
     }
 
     public static function table(Table $table): Table
@@ -81,24 +81,18 @@ class StudentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $user = auth()->user();
+        $schoolId = session('active_school_id');
 
-        if ($user->hasRole('owner')) {
-            // Get IDs of schools the current user owns
-            $schoolIds = \DB::table('school_user')
-                ->where('user_id', $user->id)
-                ->where('role', 'owner')
-                ->pluck('school_id');
-
-            // Return teachers who are in those schools
-            return parent::getEloquentQuery()
-                ->whereHas('schools', function ($query) use ($schoolIds) {
-                    $query->whereIn('schools.id', $schoolIds);
-                })
-                ->whereHas('roles', fn ($q) => $q->where('name', 'student'));
+        // Allow only specific roles to see the students list
+        if (! in_array(session('active_role'), ['owner', 'admin', 'teacher'])) {
+            abort(403); // Or return an empty query if you'd rather silently hide
         }
 
-        // Default: show all teachers
+        // Return students that belong to the selected school
         return parent::getEloquentQuery()
+            ->whereHas('schools', function ($query) use ($schoolId) {
+                $query->where('schools.id', $schoolId);
+            })
             ->whereHas('roles', fn ($q) => $q->where('name', 'student'));
     }
 }

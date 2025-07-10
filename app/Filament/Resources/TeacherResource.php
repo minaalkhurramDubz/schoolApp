@@ -43,12 +43,12 @@ class TeacherResource extends Resource
         ]);
     }
 
-  public static function shouldRegisterNavigation(): bool
-{
-    $role = session('active_role');
+    public static function shouldRegisterNavigation(): bool
+    {
+        $role = session('active_role');
 
-    return in_array($role, ['teacher', 'admin', 'owner']);
-}
+        return in_array($role, ['teacher', 'admin', 'owner']);
+    }
 
     public static function table(Table $table): Table
     {
@@ -80,7 +80,7 @@ class TeacherResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        
+
         $query = parent::getEloquentQuery();
 
         if (session()->has('active_school_id')) {
@@ -98,7 +98,6 @@ class TeacherResource extends Resource
 
     // public static function canViewAny(): bool
     // {
-             
 
     //     return auth()->check() && session()->has('active_role');
     // }
