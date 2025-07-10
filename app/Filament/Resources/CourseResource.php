@@ -35,13 +35,25 @@ class CourseResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
+        $columns = [
             TextColumn::make('name')->searchable(),
             TextColumn::make('slug')->searchable(),
-        ])
-            ->filters([
-                //
-            ])
+        ];
+
+        $role = session('active_role');
+
+        if (in_array($role, ['owner', 'admin', 'student'])) {
+            $columns[] = TextColumn::make('teachers')
+                ->label('Taught By')
+                ->getStateUsing(fn ($record) => $record->users()
+                    ->wherePivot('role', 'teacher')
+                    ->pluck('name')
+                    ->join(', ')
+                );
+        }
+
+        return $table->columns($columns)
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -70,9 +82,36 @@ class CourseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        // Only courses tied to classes in user's schools
-        return parent::getEloquentQuery()
-            ->whereHas('classes.school.users', fn ($q) => $q->where('user_id', auth()->id()));
+        $user = auth()->user();
+        $schoolId = session('active_school_id');
+        $role = session('active_role');
+
+        if (in_array($role, ['owner', 'admin'])) {
+            // Owners and admins see ALL courses in their school
+            return parent::getEloquentQuery()
+                ->where('school_id', $schoolId);
+        }
+
+        if ($role === 'teacher') {
+            // Teachers see only courses they teach
+            return parent::getEloquentQuery()
+                ->whereHas('users', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('role', 'teacher');
+                });
+        }
+
+        if ($role === 'student') {
+            // Students see only courses they belong to
+            return parent::getEloquentQuery()
+                ->whereHas('users', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('role', 'student');
+                });
+        }
+
+        // Default, show nothing if no role
+        return parent::getEloquentQuery()->whereRaw('1=0');
     }
 
     public static function shouldRegisterNavigation(): bool

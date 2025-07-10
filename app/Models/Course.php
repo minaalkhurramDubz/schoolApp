@@ -37,4 +37,10 @@ class Course extends Model
             null            // no pivot to user directly
         )->wherePivot('role', 'student');
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'course_user')
+            ->withPivot('role');
+    }
 }
