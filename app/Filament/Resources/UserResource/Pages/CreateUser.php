@@ -31,9 +31,8 @@ class CreateUser extends CreateRecord
         // }
 
         if (! empty($roles)) {
-        $user->syncRoles($roles);
-    }
-
+            $user->syncRoles($roles);
+        }
 
         if ($schoolId) {
             $user->schools()->attach($schoolId, [
