@@ -118,6 +118,6 @@ class CourseResource extends Resource
     {
         $user = auth()->user();
 
-        return $user && $user->hasAnyRole(['owner', 'admin','teacher','student']);
+        return $user && $user->hasAnyRole(['owner', 'admin', 'teacher', 'student']);
     }
 }

@@ -76,20 +76,38 @@ class UserResource extends Resource
     }
 
     public static function getEloquentQuery(): Builder
-    {
+{
+    $user = auth()->user();
 
-        // the owner should be able to see all users
-        // users resource not visible to anyone other than admin and owner
+    if ($user->hasRole('owner')) {
+        // find the school ids this owner belongs to
+        $schoolIds = \DB::table('school_user')
+            ->where('user_id', $user->id)
+            ->where('role', 'owner')
+            ->pluck('school_id');
 
-        $user = auth()->user();
-        if ($user->hasRole('owner')) {
-            // owner sees
-            return parent::getEloquentQuery()
-                ->whereHas('users', function ($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->where('role', 'owner');
-                });
-        }
-
+        return parent::getEloquentQuery()
+            ->whereHas('schools', function ($query) use ($schoolIds) {
+                $query->whereIn('schools.id', $schoolIds);
+            });
     }
+    else     if ($user->hasRole('admin')) {
+        // find the school ids this owner belongs to
+        $schoolIds = \DB::table('school_user')
+            ->where('user_id', $user->id)
+            ->where('role', 'admin')
+            ->pluck('school_id');
+
+        return parent::getEloquentQuery()
+            ->whereHas('schools', function ($query) use ($schoolIds) {
+                $query->whereIn('schools.id', $schoolIds);
+            });
+    }
+s
+
+    // optionally add logic for admins or others here
+
+    return parent::getEloquentQuery();
+}
+
 }
