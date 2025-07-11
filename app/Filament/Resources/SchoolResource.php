@@ -21,20 +21,19 @@ class SchoolResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
+        return $form->schema([
+            TextInput::make('name')
+                ->required()
+                ->maxLength(255),
 
-                TextInput::make('slug')
-                    ->required()
-                    ->unique(School::class, 'slug', ignoreRecord: true),
+            TextInput::make('slug')
+                ->required()
+                ->unique(School::class, 'slug', ignoreRecord: true),
 
-                Select::make('plan_id')
-                    ->relationship('plan', 'name')
-                    ->required(),
-            ]);
+            Select::make('plan_id')
+                ->relationship('plan', 'name')
+                ->required(),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -45,24 +44,18 @@ class SchoolResource extends Resource
                 TextColumn::make('slug')->searchable(),
                 TextColumn::make('plan.name')->label('Plan'),
             ])
-            ->filters([
-                //
-            ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -70,33 +63,21 @@ class SchoolResource extends Resource
         return [
             'index' => Pages\ListSchools::route('/'),
             'create' => Pages\CreateSchool::route('/create'),
-            'edit' => Pages\EditSchool::route('/{record}/edit'),
         ];
     }
 
-    // tenant scoping
     public static function getEloquentQuery(): Builder
     {
-        // only show schools owned by a peson
         $user = auth()->user();
 
-        // if ($user->hasRole('admin')) {
-        //     // Admin sees all schools
-        //     return parent::getEloquentQuery();
-        // }
-
-        if ($user->hasRole('owner') || $user->hasRole('admin')) {
-            // Owner sees only their own schools
+        if ($user->hasAnyRole(['owner', 'admin'])) {
             return parent::getEloquentQuery()
                 ->whereHas('users', function ($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->where('role', 'owner');
+                    $query->where('user_id', $user->id);
                 });
         }
 
-        // All other roles see nothing
         return parent::getEloquentQuery()->whereRaw('1 = 0');
-
     }
 
     public static function shouldRegisterNavigation(): bool

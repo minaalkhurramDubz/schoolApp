@@ -22,4 +22,9 @@ class School extends Model
             ->withPivot('role')
             ->withTimestamps();
     }
+
+    public function plan()
+    {
+        return $this->belongsTo(\App\Models\Plan::class);
+    }
 }
