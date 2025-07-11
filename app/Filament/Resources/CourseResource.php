@@ -20,57 +20,56 @@ class CourseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
 
-  public static function form(Form $form): Form
-{
-    return $form->schema([
-        Forms\Components\TextInput::make('name')
-            ->required()
-            ->maxLength(255),
+    public static function form(Form $form): Form
+    {
+        return $form->schema([
+            Forms\Components\TextInput::make('name')
+                ->required()
+                ->maxLength(255),
 
-        Forms\Components\TextInput::make('slug')
-            ->hidden()                  // hide the slug field from the user
-            ->dehydrated(false),        // exclude from automatic saving
+            Forms\Components\TextInput::make('slug')
+                ->hidden()                  // hide the slug field from the user
+                ->dehydrated(false),        // exclude from automatic saving
 
-        Forms\Components\Select::make('school_id')
-            ->label('School')
-            ->options(
-                School::pluck('name', 'id')
-            )
-            ->required(),
+            Forms\Components\Select::make('school_id')
+                ->label('School')
+                ->options(
+                    School::pluck('name', 'id')
+                )
+                ->required(),
 
-        Select::make('teachers')
-            ->label('Assigned Teachers')
-            ->multiple()
-            ->options(
-                User::whereHas('roles', fn ($q) => $q->where('name', 'teacher'))
-                    ->pluck('name', 'id')
-            )
-            ->preload()
-            ->searchable()
-            ->required(),
-    ]);
-}
-
-
-   public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            Tables\Columns\TextColumn::make('name')->searchable(),
-            // Tables\Columns\TextColumn::make('slug')->searchable(),
-            Tables\Columns\TextColumn::make('school.name')->label('School'),
-            Tables\Columns\TextColumn::make('teachers.name')
-                ->label('Teachers')
-                ->listWithLineBreaks(),
-        ])
-        ->actions([
-            Tables\Actions\EditAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
-
-            Tables\Actions\DeleteAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
+            Select::make('teachers')
+                ->label('Assigned Teachers')
+                ->multiple()
+                ->options(
+                    User::whereHas('roles', fn ($q) => $q->where('name', 'teacher'))
+                        ->pluck('name', 'id')
+                )
+                ->preload()
+                ->searchable()
+                ->required(),
         ]);
-}
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('name')->searchable(),
+                // Tables\Columns\TextColumn::make('slug')->searchable(),
+                Tables\Columns\TextColumn::make('school.name')->label('School'),
+                Tables\Columns\TextColumn::make('teachers.name')
+                    ->label('Teachers')
+                    ->listWithLineBreaks(),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
+
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
+            ]);
+    }
 
     public static function getRelations(): array
     {

@@ -26,11 +26,11 @@ class Plan extends Model
     {
         return $this->hasMany(User::class, 'plan_id');
     }
-    protected static function booted()
-{
-    static::retrieved(function (Course $course) {
-        $course->teachers = $course->teachers()->pluck('id')->toArray();
-    });
-}
 
+    protected static function booted()
+    {
+        static::retrieved(function (Course $course) {
+            $course->teachers = $course->teachers()->pluck('id')->toArray();
+        });
+    }
 }

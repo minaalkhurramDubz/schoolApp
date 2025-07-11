@@ -5,7 +5,6 @@ namespace App\Filament\Resources\CourseResource\Pages;
 use App\Filament\Resources\CourseResource;
 use App\Models\Course;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Database\Eloquent\Model;
 use Str;
 
 class CreateCourse extends CreateRecord

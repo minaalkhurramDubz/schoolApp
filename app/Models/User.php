@@ -58,4 +58,21 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Plan::class);
     }
+
+    public function teachingClasses()
+{
+    return $this->belongsToMany(SchoolClass::class, 'class_user', 'user_id', 'class_id')
+        ->withPivot('role')
+        ->wherePivot('role', 'teacher')
+        ->withTimestamps();
+}
+
+public function attendingClasses()
+{
+    return $this->belongsToMany(SchoolClass::class, 'class_user', 'user_id', 'class_id')
+        ->withPivot('role')
+        ->wherePivot('role', 'student')
+        ->withTimestamps();
+}
+
 }

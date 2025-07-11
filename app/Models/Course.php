@@ -9,7 +9,7 @@ class Course extends Model
 {
     use HasFactory;
 
-   protected $fillable = [
+    protected $fillable = [
         'name',
         'slug',
         'school_id',
@@ -33,6 +33,7 @@ class Course extends Model
     {
         return $this->belongsTo(School::class);
     }
+
     public function classes()
     {
         return $this->belongsToMany(SchoolClass::class, 'class_course', 'course_id', 'class_id')

@@ -3,17 +3,20 @@
 namespace App\Filament\Resources\ClassResource\Pages;
 
 use App\Filament\Resources\ClassResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditClasses extends EditRecord
 {
     protected static string $resource = ClassResource::class;
 
-    protected function getHeaderActions(): array
+    protected function afterSave(): void
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        $teachers = $this->data['teachers'] ?? [];
+
+        $syncData = collect($teachers)->mapWithKeys(fn ($id) => [
+            $id => ['role' => 'teacher'],
+        ])->toArray();
+
+        $this->record->teachers()->sync($syncData);
     }
 }
