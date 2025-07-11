@@ -23,15 +23,22 @@ class UserResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            // Basic user info
             TextInput::make('name')->required()->maxLength(255),
-            TextInput::make('email')->required()->email()->unique(User::class, 'email', ignoreRecord: true),
+            TextInput::make('email')
+                ->required()
+                ->email()
+                ->unique(User::class, 'email', ignoreRecord: true),
+            TextInput::make('password')
+                ->password()
+                ->required(fn (string $context) => $context === 'create')
+                ->dehydrateStateUsing(fn ($state) => bcrypt($state))
+                ->label('Password'),
 
-            // Role assignment
+            // keys = names, values = names
             Select::make('roles')
                 ->multiple()
-                ->options(Role::all()->pluck('name', 'name')->toArray())
-                ->required(),
+                ->options(Role::all()->pluck('name', 'name')->toArray()),
+
         ]);
     }
 
@@ -55,7 +62,12 @@ class UserResource extends Resource
             TextColumn::make('roles.name')->label('Roles'),
         ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->visible(fn () => auth()->user()->hasRole('owner')),
+                Tables\Actions\DeleteAction::make()->visible(fn () => auth()->user()->hasRole('owner')),
+
+            ])
+            ->bulkActions([
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
@@ -76,38 +88,35 @@ class UserResource extends Resource
     }
 
     public static function getEloquentQuery(): Builder
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    if ($user->hasRole('owner')) {
-        // find the school ids this owner belongs to
-        $schoolIds = \DB::table('school_user')
-            ->where('user_id', $user->id)
-            ->where('role', 'owner')
-            ->pluck('school_id');
+        if ($user->hasRole('owner')) {
+            // find the school ids this owner belongs to
+            $schoolIds = \DB::table('school_user')
+                ->where('user_id', $user->id)
+                ->where('role', 'owner')
+                ->pluck('school_id');
 
-        return parent::getEloquentQuery()
-            ->whereHas('schools', function ($query) use ($schoolIds) {
-                $query->whereIn('schools.id', $schoolIds);
-            });
+            return parent::getEloquentQuery()
+                ->whereHas('schools', function ($query) use ($schoolIds) {
+                    $query->whereIn('schools.id', $schoolIds);
+                });
+        } elseif ($user->hasRole('admin')) {
+            // find the school ids this owner belongs to
+            $schoolIds = \DB::table('school_user')
+                ->where('user_id', $user->id)
+                ->where('role', 'admin')
+                ->pluck('school_id');
+
+            return parent::getEloquentQuery()
+                ->whereHas('schools', function ($query) use ($schoolIds) {
+                    $query->whereIn('schools.id', $schoolIds);
+                });
+        }
+
+        // optionally add logic for admins or others here
+
+        return parent::getEloquentQuery();
     }
-    else     if ($user->hasRole('admin')) {
-        // find the school ids this owner belongs to
-        $schoolIds = \DB::table('school_user')
-            ->where('user_id', $user->id)
-            ->where('role', 'admin')
-            ->pluck('school_id');
-
-        return parent::getEloquentQuery()
-            ->whereHas('schools', function ($query) use ($schoolIds) {
-                $query->whereIn('schools.id', $schoolIds);
-            });
-    }
-s
-
-    // optionally add logic for admins or others here
-
-    return parent::getEloquentQuery();
-}
-
 }
