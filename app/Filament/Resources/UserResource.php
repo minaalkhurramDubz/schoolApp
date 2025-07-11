@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\School;
 use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -33,7 +34,15 @@ class UserResource extends Resource
                 ->required(fn (string $context) => $context === 'create')
                 ->dehydrateStateUsing(fn ($state) => bcrypt($state))
                 ->label('Password'),
+            // picking the suers school
 
+            Select::make('school_id')
+                ->label('School')
+                ->options(
+                    School::all()->pluck('name', 'id')
+                )
+                ->required()
+                ->searchable(),
             // keys = names, values = names
             Select::make('roles')
                 ->multiple()
@@ -91,22 +100,34 @@ class UserResource extends Resource
     {
         $user = auth()->user();
 
+        // if ($user->hasRole('owner')) {
+        //     // find the school ids this owner belongs to
+        //     $schoolIds = \DB::table('school_user')
+        //         ->where('user_id', $user->id)
+        //         ->where('role', 'owner')
+        //         ->pluck('school_id');
+
+        //     return parent::getEloquentQuery()
+        //         ->whereHas('schools', function ($query) use ($schoolIds) {
+        //             $query->whereIn('schools.id', $schoolIds);
+        //         });
+        // } elseif ($user->hasRole('admin')) {
+        //     // find the school ids this owner belongs to
+        //     $schoolIds = \DB::table('school_user')
+        //         ->where('user_id', $user->id)
+        //         ->where('role', 'admin')
+        //         ->pluck('school_id');
+
+        //     return parent::getEloquentQuery()
+        //         ->whereHas('schools', function ($query) use ($schoolIds) {
+        //             $query->whereIn('schools.id', $schoolIds);
+        //         });
+        // }
+
         if ($user->hasRole('owner')) {
-            // find the school ids this owner belongs to
             $schoolIds = \DB::table('school_user')
                 ->where('user_id', $user->id)
                 ->where('role', 'owner')
-                ->pluck('school_id');
-
-            return parent::getEloquentQuery()
-                ->whereHas('schools', function ($query) use ($schoolIds) {
-                    $query->whereIn('schools.id', $schoolIds);
-                });
-        } elseif ($user->hasRole('admin')) {
-            // find the school ids this owner belongs to
-            $schoolIds = \DB::table('school_user')
-                ->where('user_id', $user->id)
-                ->where('role', 'admin')
                 ->pluck('school_id');
 
             return parent::getEloquentQuery()
