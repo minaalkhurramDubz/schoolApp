@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StudentResource\Pages;
 use App\Models\User;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,7 +11,6 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Spatie\Permission\Models\Role;
 
 class StudentResource extends Resource
 {
@@ -31,42 +29,46 @@ class StudentResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            // Basic user info
-            TextInput::make('name')->required()->maxLength(255),
-            TextInput::make('email')->required()->email()->unique(User::class, 'email', ignoreRecord: true),
+            TextInput::make('name')
+                ->required()
+                ->maxLength(255),
 
-            // Role assignment
-            Select::make('roles')
-                ->multiple()
-                ->options(Role::all()->pluck('name', 'name')->toArray())
-                ->required(),
+            TextInput::make('email')
+                ->required()
+                ->email()
+                ->unique(User::class, 'email', ignoreRecord: true),
+
+            // TextInput::make('password')
+            //     ->password()
+            //     ->dehydrateStateUsing(fn ($state) => !empty($state) ? bcrypt($state) : null)
+            //     ->hiddenOn('edit')
+            //     ->maxLength(255)
+            //     ->label('Password (leave empty for auto-generation)'),
         ]);
-    }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        $role = session('active_role');
-
-        return in_array($role, ['teacher', 'admin', 'owner']);
     }
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
-            TextColumn::make('name')->searchable(),
-            TextColumn::make('email')->searchable(),
-            TextColumn::make('roles.name')->label('Roles'),
+        return $table
+            ->columns([
+                TextColumn::make('name')->searchable(),
+                TextColumn::make('email')->searchable(),
+            ])
+           ->actions([
+            Tables\Actions\EditAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+            Tables\Actions\DeleteAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
         ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ]);
+        ->bulkActions([
+            Tables\Actions\DeleteBulkAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+        ]);
     }
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -80,19 +82,19 @@ class StudentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
         $schoolId = session('active_school_id');
 
-        // Allow only specific roles to see the students list
-        if (! in_array(session('active_role'), ['owner', 'admin', 'teacher'])) {
-            abort(403); // Or return an empty query if you'd rather silently hide
-        }
-
-        // Return students that belong to the selected school
         return parent::getEloquentQuery()
             ->whereHas('schools', function ($query) use ($schoolId) {
-                $query->where('schools.id', $schoolId);
-            })
-            ->whereHas('roles', fn ($q) => $q->where('name', 'student'));
+                $query->where('schools.id', $schoolId)
+                    ->where('school_user.role', 'student');
+            });
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $role = session('active_role');
+
+        return in_array($role, ['owner', 'admin','teacher']);
     }
 }
