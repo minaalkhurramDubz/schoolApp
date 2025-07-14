@@ -33,7 +33,11 @@ class CreateClasses extends CreateRecord
     {
         $teachers = $data['teachers'] ?? [];
         unset($data['teachers']);
-
+if (session()->has('active_school_id')) {
+        $data['school_id'] = session('active_school_id');
+    } else {
+        throw new \Exception('No active school selected.');
+    }
         // Generate slug if not already set
         if (empty($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);

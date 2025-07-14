@@ -35,12 +35,12 @@ class ClassResource extends Resource
                 ->hidden()
                 ->dehydrated(false),
 
-            Forms\Components\Select::make('school_id')
-                ->label('School')
-                ->options(
-                    School::pluck('name', 'id')
-                )
-                ->required(),
+            // Forms\Components\Select::make('school_id')
+            //     ->label('School')
+            //     ->options(
+            //         School::pluck('name', 'id')
+            //     )
+            //     ->required(),
 
             Forms\Components\Select::make('teachers')
                 ->label('Assigned Teachers')
