@@ -18,4 +18,8 @@ class CreateSchool extends CreateRecord
             'role' => 'owner',
         ]);
     }
+      protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
