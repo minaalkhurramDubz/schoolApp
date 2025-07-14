@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TeacherResource\Pages;
 use App\Models\User;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,7 +11,6 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Spatie\Permission\Models\Role;
 
 class TeacherResource extends Resource
 {
@@ -22,24 +20,23 @@ class TeacherResource extends Resource
 
     protected static ?string $label = 'Teacher';
 
-    protected static ?string $pluralLabel = 'Teacher';
+    protected static ?string $pluralLabel = 'Teachers';
 
-    protected static ?string $navigationLabel = 'Teacher';
+    protected static ?string $navigationLabel = 'Teachers';
 
-    protected static ?string $slug = 'Teacher';
+    protected static ?string $slug = 'teachers';
 
     public static function form(Form $form): Form
     {
         return $form->schema([
-            // Basic user info
-            TextInput::make('name')->required()->maxLength(255),
-            TextInput::make('email')->required()->email()->unique(User::class, 'email', ignoreRecord: true),
+            TextInput::make('name')
+                ->required()
+                ->maxLength(255),
 
-            // Role assignment
-            Select::make('roles')
-                ->multiple()
-                ->options(Role::all()->pluck('name', 'name')->toArray())
-                ->required(),
+            TextInput::make('email')
+                ->required()
+                ->email()
+                ->unique(User::class, 'email', ignoreRecord: true),
         ]);
     }
 
@@ -47,7 +44,7 @@ class TeacherResource extends Resource
     {
         $role = session('active_role');
 
-        return in_array($role, ['teacher', 'admin', 'owner']);
+        return in_array($role, ['admin', 'owner']);
     }
 
     public static function table(Table $table): Table
@@ -55,18 +52,22 @@ class TeacherResource extends Resource
         return $table->columns([
             TextColumn::make('name')->searchable(),
             TextColumn::make('email')->searchable(),
-            TextColumn::make('roles.name')->label('Roles'),
         ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-            ]);
+        ->actions([
+            Tables\Actions\EditAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+            Tables\Actions\DeleteAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+        ])
+        ->bulkActions([
+            Tables\Actions\DeleteBulkAction::make()
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+        ]);
     }
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -80,7 +81,6 @@ class TeacherResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-
         $query = parent::getEloquentQuery();
 
         if (session()->has('active_school_id')) {
@@ -92,13 +92,6 @@ class TeacherResource extends Resource
             });
         }
 
-        // Optional: return empty result if no school picked
         return $query->whereRaw('0=1');
     }
-
-    // public static function canViewAny(): bool
-    // {
-
-    //     return auth()->check() && session()->has('active_role');
-    // }
 }
