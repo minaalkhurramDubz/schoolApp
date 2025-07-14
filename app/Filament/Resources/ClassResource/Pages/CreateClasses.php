@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\ClassResource\Pages;
 
+use App\Filament\PlanLimitChecker;
 use App\Filament\Resources\ClassResource;
+use App\Models\School;
 use App\Models\SchoolClass;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Str;
@@ -10,6 +12,22 @@ use Illuminate\Support\Str;
 class CreateClasses extends CreateRecord
 {
     protected static string $resource = ClassResource::class;
+
+    protected function beforeCreate(): void
+    {
+        $schoolId = session('active_school_id');
+
+        if (! $schoolId) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'school_id' => 'No active school selected.',
+            ]);
+        }
+
+        $school = School::findOrFail($schoolId);
+
+        // ✅ Call your plan checker like this:
+        PlanLimitChecker::checkLimit($school, 'classes');
+    }
 
     protected function handleRecordCreation(array $data): SchoolClass
     {
@@ -30,5 +48,10 @@ class CreateClasses extends CreateRecord
         $class->teachers()->sync($syncData);
 
         return $class;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

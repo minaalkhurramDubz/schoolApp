@@ -53,16 +53,16 @@ class TeacherResource extends Resource
             TextColumn::make('name')->searchable(),
             TextColumn::make('email')->searchable(),
         ])
-        ->actions([
-            Tables\Actions\EditAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
-            Tables\Actions\DeleteAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
-        ])
-        ->bulkActions([
-            Tables\Actions\DeleteBulkAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
-        ]);
+            ->actions([
+                Tables\Actions\EditAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+            ])
+            ->bulkActions([
+                Tables\Actions\DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+            ]);
     }
 
     public static function getRelations(): array

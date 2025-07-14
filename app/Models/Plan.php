@@ -35,8 +35,6 @@ use Spatie\Permission\Traits\HasRoles;
 //     }
 // }
 
-
-
 class Plan extends Model
 {
     //
@@ -45,7 +43,7 @@ class Plan extends Model
     // the rows, attirbutes of plan table
     protected $fillable = [
         'name',
-     
+
         'max_schools',
         'max_classes',
         'max_teachers',

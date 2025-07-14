@@ -25,20 +25,20 @@ class DatabaseSeeder extends Seeder
             'name' => 'Basic Plan',
         ], [
             'max_schools' => 1,
-            'max_classes' => 100,
-            'max_teachers' => 200,
-            'max_students' => 1000,
-            'max_courses' => 500,
+            'max_classes' => 2,
+            'max_teachers' => 5,
+            'max_students' => 10,
+            'max_courses' => 5,
         ]);
 
         $proPlan = Plan::firstOrCreate([
             'name' => 'Pro',
         ], [
             'max_schools' => 2,
-            'max_classes' => 100,
-            'max_teachers' => 200,
-            'max_students' => 2000,
-            'max_courses' => 500,
+            'max_classes' => 3,
+            'max_teachers' => 6,
+            'max_students' => 15,
+            'max_courses' => 10,
         ]);
 
         // Create the single system admin
@@ -70,121 +70,121 @@ class DatabaseSeeder extends Seeder
 
             // Attach the owner as owner of the school
             $school->users()->attach($owner->id, ['role' => 'owner']);
-
-            // Create Teachers
-            for ($t = 1; $t <= 2; $t++) {
-                $teacher = User::create([
-                    'name' => "Teacher{$t}_School{$i}",
-                    'email' => "teacher{$t}_school{$i}@example.com",
-                    'password' => bcrypt('password'),
-                ]);
-                $teacher->assignRole('teacher');
-                $school->users()->attach($teacher->id, ['role' => 'teacher']);
-            }
-
-            // Create Students
-            for ($s = 1; $s <= 3; $s++) {
-                $student = User::create([
-                    'name' => "Student{$s}_School{$i}",
-                    'email' => "student{$s}_school{$i}@example.com",
-                    'password' => bcrypt('password'),
-                ]);
-                $student->assignRole('student');
-                $school->users()->attach($student->id, ['role' => 'student']);
-            }
-
-            // Create Courses for this school
-            for ($c = 1; $c <= 3; $c++) {
-                Course::create([
-                    'name' => "Course{$c}_School{$i}",
-                    'slug' => Str::slug("Course{$c}_School{$i}"),
-                    'school_id' => $school->id,
-                ]);
-            }
-
-            // Create Classes
-            $classIds = [];
-            for ($cl = 1; $cl <= 2; $cl++) {
-                $class = SchoolClass::create([
-                    'name' => "Class{$cl}_School{$i}",
-                    'slug' => Str::slug("Class{$cl}_School{$i}"),
-                    'school_id' => $school->id,
-                ]);
-                $classIds[] = $class->id;
-            }
-
-            // Attach all courses to all classes for now
-            $courses = Course::where('school_id', $school->id)->get();
-            foreach ($classIds as $classId) {
-                foreach ($courses as $course) {
-                    \DB::table('class_course')->insertOrIgnore([
-                        'class_id' => $classId,
-                        'course_id' => $course->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-            }
-
-            $courses = Course::where('school_id', $school->id)->get();
-            foreach ($classIds as $classId) {
-                foreach ($courses as $course) {
-                    \DB::table('class_course')->insertOrIgnore([
-                        'class_id' => $classId,
-                        'course_id' => $course->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-            }
         }
+        //     // Create Teachers
+        //     for ($t = 1; $t <= 2; $t++) {
+        //         $teacher = User::create([
+        //             'name' => "Teacher{$t}_School{$i}",
+        //             'email' => "teacher{$t}_school{$i}@example.com",
+        //             'password' => bcrypt('password'),
+        //         ]);
+        //         $teacher->assignRole('teacher');
+        //         $school->users()->attach($teacher->id, ['role' => 'teacher']);
+        //     }
 
-        // NEW BLOCK → assign random courses to teachers/students
-        $schools = School::all();
+        //     // Create Students
+        //     for ($s = 1; $s <= 3; $s++) {
+        //         $student = User::create([
+        //             'name' => "Student{$s}_School{$i}",
+        //             'email' => "student{$s}_school{$i}@example.com",
+        //             'password' => bcrypt('password'),
+        //         ]);
+        //         $student->assignRole('student');
+        //         $school->users()->attach($student->id, ['role' => 'student']);
+        //     }
 
-        foreach ($schools as $school) {
-            $courses = Course::where('school_id', $school->id)->get();
+        //     // Create Courses for this school
+        //     for ($c = 1; $c <= 3; $c++) {
+        //         Course::create([
+        //             'name' => "Course{$c}_School{$i}",
+        //             'slug' => Str::slug("Course{$c}_School{$i}"),
+        //             'school_id' => $school->id,
+        //         ]);
+        //     }
 
-            if ($courses->count() > 0) {
-                $randomCourses = $courses->random(min(2, $courses->count()));
+        //     // Create Classes
+        //     $classIds = [];
+        //     for ($cl = 1; $cl <= 2; $cl++) {
+        //         $class = SchoolClass::create([
+        //             'name' => "Class{$cl}_School{$i}",
+        //             'slug' => Str::slug("Class{$cl}_School{$i}"),
+        //             'school_id' => $school->id,
+        //         ]);
+        //         $classIds[] = $class->id;
+        //     }
 
-                $teachers = User::whereHas('schools', function ($query) use ($school) {
-                    $query->where('schools.id', $school->id)
-                        ->where('school_user.role', 'teacher');
+        //     // Attach all courses to all classes for now
+        //     $courses = Course::where('school_id', $school->id)->get();
+        //     foreach ($classIds as $classId) {
+        //         foreach ($courses as $course) {
+        //             \DB::table('class_course')->insertOrIgnore([
+        //                 'class_id' => $classId,
+        //                 'course_id' => $course->id,
+        //                 'created_at' => now(),
+        //                 'updated_at' => now(),
+        //             ]);
+        //         }
+        //     }
 
-                })->take(2)->get();
+        //     $courses = Course::where('school_id', $school->id)->get();
+        //     foreach ($classIds as $classId) {
+        //         foreach ($courses as $course) {
+        //             \DB::table('class_course')->insertOrIgnore([
+        //                 'class_id' => $classId,
+        //                 'course_id' => $course->id,
+        //                 'created_at' => now(),
+        //                 'updated_at' => now(),
+        //             ]);
+        //         }
+        //     }
+        // }
 
-                foreach ($teachers as $teacher) {
-                    foreach ($randomCourses as $course) {
-                        \DB::table('course_user')->insertOrIgnore([
-                            'course_id' => $course->id,
-                            'user_id' => $teacher->id,
-                            'role' => 'teacher',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
+        // // NEW BLOCK → assign random courses to teachers/students
+        // $schools = School::all();
 
-                $students = User::whereHas('schools', function ($query) use ($school) {
-                    $query->where('schools.id', $school->id)
-                        ->where('school_user.role', 'student');
+        // foreach ($schools as $school) {
+        //     $courses = Course::where('school_id', $school->id)->get();
 
-                })->take(2)->get();
+        //     if ($courses->count() > 0) {
+        //         $randomCourses = $courses->random(min(2, $courses->count()));
 
-                foreach ($students as $student) {
-                    foreach ($randomCourses as $course) {
-                        \DB::table('course_user')->insertOrIgnore([
-                            'course_id' => $course->id,
-                            'user_id' => $student->id,
-                            'role' => 'student',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
-            }
-        }
+        //         $teachers = User::whereHas('schools', function ($query) use ($school) {
+        //             $query->where('schools.id', $school->id)
+        //                 ->where('school_user.role', 'teacher');
+
+        //         })->take(2)->get();
+
+        //         foreach ($teachers as $teacher) {
+        //             foreach ($randomCourses as $course) {
+        //                 \DB::table('course_user')->insertOrIgnore([
+        //                     'course_id' => $course->id,
+        //                     'user_id' => $teacher->id,
+        //                     'role' => 'teacher',
+        //                     'created_at' => now(),
+        //                     'updated_at' => now(),
+        //                 ]);
+        //             }
+        //         }
+
+        //         $students = User::whereHas('schools', function ($query) use ($school) {
+        //             $query->where('schools.id', $school->id)
+        //                 ->where('school_user.role', 'student');
+
+        //         })->take(2)->get();
+
+        //         foreach ($students as $student) {
+        //             foreach ($randomCourses as $course) {
+        //                 \DB::table('course_user')->insertOrIgnore([
+        //                     'course_id' => $course->id,
+        //                     'user_id' => $student->id,
+        //                     'role' => 'student',
+        //                     'created_at' => now(),
+        //                     'updated_at' => now(),
+        //                 ]);
+        //             }
+        //         }
+        //     }
+        // }
 
     }
 }

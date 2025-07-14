@@ -27,4 +27,14 @@ class School extends Model
     {
         return $this->belongsTo(\App\Models\Plan::class);
     }
+
+    public function classes()
+    {
+        return $this->hasMany(SchoolClass::class); // assuming your model is SchoolClass
+    }
+
+    public function courses()
+    {
+        return $this->hasMany(Course::class);
+    }
 }

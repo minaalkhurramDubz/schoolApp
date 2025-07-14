@@ -4,6 +4,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
 use App\Models\User;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +16,17 @@ class CreateUser extends CreateRecord
     {
         $roles = $data['roles'] ?? [];
         $schoolId = $data['school_id'] ?? null;
+
+        if (auth()->user()->hasRole('admin') && in_array('owner', $roles)) {
+            Notification::make()
+                ->title('Not Allowed')
+                ->body('Admin does not have permission for this action!')
+                ->warning()
+                ->send();
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'roles' => 'Admins are not allowed to assign the "owner" role.',
+            ]);
+        }
 
         unset($data['roles'], $data['school_id']);
 
