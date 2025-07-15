@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\PlanLimitChecker;
 use App\Filament\Resources\UserResource;
 use App\Models\User;
 use Filament\Notifications\Notification;
@@ -12,6 +13,21 @@ class CreateUser extends CreateRecord
 {
     protected static string $resource = UserResource::class;
 
+    // protected function beforeCreate(): void
+    // {
+    //     $schoolId = session('active_school_id');
+
+    //     if (! $schoolId) {
+    //         throw \Illuminate\Validation\ValidationException::withMessages([
+    //             'school_id' => 'No active school selected.',
+    //         ]);
+    //     }
+
+    //     $school = School::findOrFail($schoolId);
+
+    //     // ✅ Call your plan checker like this:
+    //     PlanLimitChecker::checkLimit($school, 'students');
+    // }
     protected function handleRecordCreation(array $data): Model
     {
         $roles = $data['roles'] ?? [];

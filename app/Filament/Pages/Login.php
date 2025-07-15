@@ -64,6 +64,7 @@ class Login extends Page
     {
         $email = $this->data['email'] ?? null;
 
+        // email empty case
         if (! $email) {
             Notification::make()
                 ->danger()
@@ -73,19 +74,21 @@ class Login extends Page
             return;
         }
 
-        // user being added to db
+        // first or create , checks if user ecists otherwie register a new user
         $user = User::firstOrCreate(
             ['email' => $email],
             ['name' => $email, 'password' => bcrypt(str()->random(16))]
 
         );
 
+        // creare temporary login link ,, valid for 15 mins
         $url = URL::temporarySignedRoute(
             'filament.auth.auth.login',
             now()->addMinutes(15),
             ['email' => $user->email]
         );
 
+        // sending magic link via MAIL
         Mail::raw(
             "Click to login: {$url}",
             fn ($message) => $message
@@ -93,6 +96,7 @@ class Login extends Page
                 ->subject('Your Magic Login Link')
         );
 
+        // success notifcation
         Notification::make()
             ->success()
             ->title('Check your email for the login link!')
@@ -101,7 +105,7 @@ class Login extends Page
 
     private function sessionCheckAndRedirect(User $user): void
     {
-        // ✅ Check how many schools this user belongs to:
+        // use pivot table to check users schools
         $schools = DB::table('school_user')
             ->where('user_id', $user->id)
             ->pluck('school_id');
@@ -110,9 +114,10 @@ class Login extends Page
             // Only one school → save it to session
             session(['active_school_id' => $schools->first()]);
 
+            // redirect to dashbaord
             $this->redirect(filament()->getUrl());
         } elseif ($schools->count() > 1) {
-            // More than one → redirect them to choose
+            // redirect to choose schools
             $this->redirect(route('filament.auth.pages.choose-school'));
         } else {
             // No schools at all
