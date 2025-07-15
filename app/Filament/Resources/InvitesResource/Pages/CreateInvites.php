@@ -54,6 +54,7 @@ class CreateInvites extends CreateRecord
             ]
         );
 
+        // sending emsil
         Mail::raw(
             "Click to login: {$url}",
             fn ($message) => $message

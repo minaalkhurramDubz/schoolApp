@@ -67,22 +67,57 @@ class CourseResource extends Resource
                     ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
 
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
-            ]);
+                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
+
+ Tables\Actions\Action::make('Unenroll')
+        ->label('Unenroll')
+        ->icon('heroicon-o-minus')
+        ->requiresConfirmation()
+        ->visible(fn ($record) => auth()->user()?->hasRole('student'))
+          ->action(function ($record) {
+$user = auth()->user();
+
+    // Remove the row from course_user
+   $record->users()->detach($user->id);
+
+    \Filament\Notifications\Notification::make()
+        ->success()
+        ->title('Unenrolled Successfully')
+        ->send();
+
+    // $this->redirect(\App\Filament\Resources\CourseResource::getUrl());
+                }),
+                   ]);
+
     }
 
     public static function getRelations(): array
     {
         return [];
     }
+public function unenrollStudent(Course $course): void
+{
+    $user = auth()->user();
+
+    // Remove the row from course_user
+    $course->users()
+        ->wherePivot('role', 'student')
+        ->detach($user->id);
+
+    \Filament\Notifications\Notification::make()
+        ->success()
+        ->title('Unenrolled Successfully')
+        ->send();
+
+    $this->redirect(\App\Filament\Resources\CourseResource::getUrl());
+}
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListCourses::route('/'),
             'create' => Pages\CreateCourse::route('/create'),
-            'edit' => Pages\EditCourse::route('/{record}/edit'),
-        ];
+            'edit' => Pages\EditCourse::route('/{record}/edit')  ];
     }
 
     public static function getEloquentQuery(): Builder
@@ -107,6 +142,12 @@ class CourseResource extends Resource
             });
         }
 
+        // Teachers see only courses they teach
+        if ($user->hasRole('student')) {
+            return $query->whereHas('students', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
         return $query->whereRaw('1=0');
     }
 }

@@ -58,6 +58,7 @@ class UserResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
+        // check if user is valid /logged in
         $user = auth()->user();
 
         return $user && $user->hasAnyRole(['owner', 'admin']);
