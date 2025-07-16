@@ -84,7 +84,7 @@ class ClassResource extends Resource
     {
         $user = auth()->user();
 
-        return $user && $user->hasAnyRole(['owner', 'admin', 'teacher']);
+        return $user && $user->hasAnyRole(['owner', 'admin', 'teacher', 'student']);
     }
 
     public static function getPages(): array
@@ -113,6 +113,16 @@ class ClassResource extends Resource
         if ($user->hasRole('teacher')) {
             return $query->whereHas('teachers', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
+            });
+        }
+        // Students: show classes linked to courses they are enrolled in
+        if ($user->hasRole('student')) {
+            return $query->whereHas('courses', function ($courseQuery) use ($user) {
+                $courseQuery->whereHas('users', function ($userQuery) use ($user) {
+                    $userQuery
+                        ->where('user_id', $user->id)
+                        ->where('role', 'student');
+                });
             });
         }
 

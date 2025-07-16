@@ -19,10 +19,10 @@ class ListUsers extends ListRecords
 
         return [
             Actions\CreateAction::make(),
-            // Action::make('Invite User')
-            //     ->icon('heroicon-o-plus')
-            //     ->url(UserResource::getUrl('invite'))
-            //     ->visible(fn () => auth()->user()->hasRole('owner')),
+            Action::make('Import CSV')
+                ->icon('heroicon-o-plus')
+                ->url(UserResource::getUrl('import'))
+                ->visible(fn () => auth()->user()->hasRole('owner')),
         ];
     }
 }

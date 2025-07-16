@@ -29,10 +29,34 @@ class CreateCourse extends CreateRecord
         PlanLimitChecker::checkLimit($school, 'courses');
     }
 
+    // protected function handleRecordCreation(array $data): Course
+    // {
+    //     $teachers = $data['teachers'] ?? [];
+    //     unset($data['teachers']);
+
+    //     // Generate slug automatically
+    //     $data['slug'] = Str::slug($data['name']);
+
+    //     /** @var Course $course */
+    //     $course = Course::create($data);
+
+    //     // Attach teachers with pivot role
+    //     $syncData = collect($teachers)->mapWithKeys(function ($id) {
+    //         return [$id => ['role' => 'teacher']];
+    //     })->toArray();
+
+    //     $course->teachers()->sync($syncData);
+
+    //     return $course;
+    // }
+
     protected function handleRecordCreation(array $data): Course
     {
+        // Extract teachers and classes
         $teachers = $data['teachers'] ?? [];
-        unset($data['teachers']);
+        $classes = $data['classes'] ?? [];
+
+        unset($data['teachers'], $data['classes']);
 
         // Generate slug automatically
         $data['slug'] = Str::slug($data['name']);
@@ -41,12 +65,20 @@ class CreateCourse extends CreateRecord
         $course = Course::create($data);
 
         // Attach teachers with pivot role
-        $syncData = collect($teachers)->mapWithKeys(function ($id) {
-            return [$id => ['role' => 'teacher']];
-        })->toArray();
+        $syncTeachers = collect($teachers)
+            ->mapWithKeys(fn ($id) => [$id => ['role' => 'teacher']])
+            ->toArray();
 
-        $course->teachers()->sync($syncData);
+        $course->teachers()->sync($syncTeachers);
+
+        // Attach classes
+        $course->classes()->sync($classes);
 
         return $course;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

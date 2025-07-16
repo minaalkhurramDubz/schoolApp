@@ -94,6 +94,7 @@ class UserResource extends Resource
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
+            'import' => Pages\UserImport::route('/import'),
             //     'invite' => Pages\InviteUser::route('/invite'),
         ];
     }

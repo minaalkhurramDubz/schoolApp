@@ -30,9 +30,10 @@ class SchoolClass extends Model
      */
     public function students()
     {
-        return $this->belongsToMany(User::class, 'class_user')
-            ->withTimestamps()
-            ->wherePivot('role', 'student');
+        return $this->belongsToMany(User::class, 'class_user', 'class_id', 'user_id')
+            ->withPivot('role')
+            ->wherePivot('role', 'student')
+            ->withTimestamps();
     }
 
     /**
@@ -51,7 +52,6 @@ class SchoolClass extends Model
      */
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'class_course')
-            ->withTimestamps();
+        return $this->belongsToMany(Course::class, 'class_course', 'class_id', 'course_id');
     }
 }

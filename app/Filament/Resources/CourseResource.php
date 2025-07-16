@@ -38,6 +38,13 @@ class CourseResource extends Resource
                 )
                 ->required(),
 
+            Select::make('classes')
+                ->label('Assigned Classes')
+                ->multiple()
+                ->relationship('classes', 'name')
+                ->preload()
+                ->searchable(),
+
             Select::make('teachers')
                 ->label('Assigned Teachers')
                 ->multiple()
@@ -67,27 +74,27 @@ class CourseResource extends Resource
                     ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
 
                 Tables\Actions\DeleteAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin', 'teacher'])),
 
- Tables\Actions\Action::make('Unenroll')
-        ->label('Unenroll')
-        ->icon('heroicon-o-minus')
-        ->requiresConfirmation()
-        ->visible(fn ($record) => auth()->user()?->hasRole('student'))
-          ->action(function ($record) {
-$user = auth()->user();
+                Tables\Actions\Action::make('Unenroll')
+                    ->label('Unenroll')
+                    ->icon('heroicon-o-minus')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => auth()->user()?->hasRole('student'))
+                    ->action(function ($record) {
+                        $user = auth()->user();
 
-    // Remove the row from course_user
-   $record->users()->detach($user->id);
+                        // Remove the row from course_user
+                        $record->users()->detach($user->id);
 
-    \Filament\Notifications\Notification::make()
-        ->success()
-        ->title('Unenrolled Successfully')
-        ->send();
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('Unenrolled Successfully')
+                            ->send();
 
-    // $this->redirect(\App\Filament\Resources\CourseResource::getUrl());
-                }),
-                   ]);
+                        // $this->redirect(\App\Filament\Resources\CourseResource::getUrl());
+                    }),
+            ]);
 
     }
 
@@ -95,29 +102,30 @@ $user = auth()->user();
     {
         return [];
     }
-public function unenrollStudent(Course $course): void
-{
-    $user = auth()->user();
 
-    // Remove the row from course_user
-    $course->users()
-        ->wherePivot('role', 'student')
-        ->detach($user->id);
+    public function unenrollStudent(Course $course): void
+    {
+        $user = auth()->user();
 
-    \Filament\Notifications\Notification::make()
-        ->success()
-        ->title('Unenrolled Successfully')
-        ->send();
+        // Remove the row from course_user
+        $course->users()
+            ->wherePivot('role', 'student')
+            ->detach($user->id);
 
-    $this->redirect(\App\Filament\Resources\CourseResource::getUrl());
-}
+        \Filament\Notifications\Notification::make()
+            ->success()
+            ->title('Unenrolled Successfully')
+            ->send();
+
+        $this->redirect(\App\Filament\Resources\CourseResource::getUrl());
+    }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListCourses::route('/'),
             'create' => Pages\CreateCourse::route('/create'),
-            'edit' => Pages\EditCourse::route('/{record}/edit')  ];
+            'edit' => Pages\EditCourse::route('/{record}/edit')];
     }
 
     public static function getEloquentQuery(): Builder
@@ -148,6 +156,12 @@ public function unenrollStudent(Course $course): void
                 $q->where('user_id', $user->id);
             });
         }
+
         return $query->whereRaw('1=0');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->check() && session()->has('active_role');
     }
 }

@@ -39,6 +39,28 @@ class ListCourses extends ListRecords
         ];
     }
 
+    //     public function enrollStudent(array $data): void
+    //     {
+    //         $user = auth()->user();
+
+    //         $courseId = $data['course_id'];
+
+    //         $course = \App\Models\Course::findOrFail($courseId);
+    //         $course->users()->syncWithoutDetaching([
+    //             $user->id => ['role' => 'student'],
+    //         ]);
+
+    //         \Filament\Notifications\Notification::make()
+    //             ->title('Enrolled')
+    //             ->body('successfully enrolled')
+    //             ->success()
+    //             ->send();
+    //         // Redirect or reload page
+    //         $this->redirect(CourseResource::getUrl());
+
+    //     }
+    // }
+
     public function enrollStudent(array $data): void
     {
         $user = auth()->user();
@@ -46,17 +68,27 @@ class ListCourses extends ListRecords
         $courseId = $data['course_id'];
 
         $course = \App\Models\Course::findOrFail($courseId);
+
+        // Enroll user in course
         $course->users()->syncWithoutDetaching([
             $user->id => ['role' => 'student'],
         ]);
 
+        // Find all classes linked to this course
+        $classes = $course->classes;
+
+        foreach ($classes as $class) {
+            $class->students()->syncWithoutDetaching([
+                $user->id => ['role' => 'student'],
+            ]);
+        }
+
         \Filament\Notifications\Notification::make()
             ->title('Enrolled')
-            ->body('successfully enrolled')
+            ->body('Successfully enrolled')
             ->success()
             ->send();
-        // Redirect or reload page
-        $this->redirect(CourseResource::getUrl());
 
+        $this->redirect(CourseResource::getUrl());
     }
 }

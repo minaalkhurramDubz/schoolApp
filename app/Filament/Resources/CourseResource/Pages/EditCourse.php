@@ -20,4 +20,9 @@ class EditCourse extends EditRecord
 
         $this->record->teachers()->sync($syncData);
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

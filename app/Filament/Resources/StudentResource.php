@@ -38,12 +38,6 @@ class StudentResource extends Resource
                 ->email()
                 ->unique(User::class, 'email', ignoreRecord: true),
 
-            // TextInput::make('password')
-            //     ->password()
-            //     ->dehydrateStateUsing(fn ($state) => !empty($state) ? bcrypt($state) : null)
-            //     ->hiddenOn('edit')
-            //     ->maxLength(255)
-            //     ->label('Password (leave empty for auto-generation)'),
         ]);
     }
 
