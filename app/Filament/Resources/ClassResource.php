@@ -103,12 +103,28 @@ class ClassResource extends Resource
         $user = auth()->user();
 
         if ($user->hasAnyRole(['owner', 'admin'])) {
-            $schoolIds = \DB::table('school_user')
-                ->where('user_id', $user->id)
-                ->pluck('school_id');
+    $selectedSchoolId = session('selected_school_id');
 
-            return $query->whereIn('school_id', $schoolIds);
-        }
+    if ($selectedSchoolId) {
+        return $query->where('school_id', $selectedSchoolId);
+    }
+}
+
+
+        // if ($user->hasAnyRole(['owner', 'admin'])) {
+        //     $schoolIds = \DB::table('school_user')
+        //         ->where('user_id', $user->id)
+        //         ->pluck('school_id');
+
+        //     return $query->whereIn('school_id', $schoolIds);
+        // }
+
+//         if ($user->hasAnyRole(['owner', 'admin']) && request()->route('record')) {
+//     $selectedSchoolId = request()->route('record');
+
+//     return $query->where('school_id', $selectedSchoolId);
+// }
+
 
         if ($user->hasRole('teacher')) {
             return $query->whereHas('teachers', function ($q) use ($user) {

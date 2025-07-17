@@ -12,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\URL;
 use Maatwebsite\Excel\Facades\Excel;
 
+// larael uses shuld queu to put the job on schedule 
 class ProcessUserImportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -29,9 +30,11 @@ class ProcessUserImportJob implements ShouldQueue
         $this->schoolId = $schoolId;
     }
 
+    // handle function executes when job starts 
     public function handle(): void
     {
         try {
+            // read the excel path
             $path = storage_path('app/'.$this->path);
 
             \Log::info("Checking file at: {$path}");
@@ -43,6 +46,8 @@ class ProcessUserImportJob implements ShouldQueue
             }
 
             \Log::info('File exists! Proceeding with import...');
+          // import the excel part , use user import php for data 
+          // grabs data from excel file and stores thm in. rows 
             $import = new UserImport;
             Excel::import($import, $path);
 
@@ -56,6 +61,7 @@ class ProcessUserImportJob implements ShouldQueue
 
             \Log::info('Imported rows:', $rows->toArray());
 
+            // loop over every row ,each row is a record 
             foreach ($rows as $row) {
                 $email = $row['email'] ?? null;
                 $name = $row['name'] ?? null;
@@ -65,6 +71,7 @@ class ProcessUserImportJob implements ShouldQueue
                 }
 
                 // First or create user
+                // create the user if it doesnt exist otherwise update it 
                 $user = User::firstOrCreate(
                     ['email' => $email],
                     [

@@ -47,7 +47,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function schools()
+    public function schools() 
     {
         return $this->belongsToMany(School::class, 'school_user')
             ->withPivot('role')
@@ -74,4 +74,7 @@ class User extends Authenticatable
             ->wherePivot('role', 'student')
             ->withTimestamps();
     }
+
+    
+
 }

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class ChooseSchool extends Page
 {
@@ -30,4 +31,13 @@ class ChooseSchool extends Page
             'schools' => $this->schools,
         ];
     }
+public function setSchool($schoolId)
+{
+    session(['selected_school_id' => $schoolId]);
+    Session::save(); // Force session save
+
+ return redirect()->to('/admin/choose-role/' . $schoolId);
+
+}
+
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SchoolResource\Pages;
+use App\Filament\Resources\SchoolResource\Pages\SchoolDashboard;
 use App\Models\School;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -44,10 +45,16 @@ class SchoolResource extends Resource
                 TextColumn::make('slug')->searchable(),
                 TextColumn::make('plan.name')->label('Plan'),
             ])
-            ->actions([
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
-            ])
+           ->actions([
+    Tables\Actions\Action::make('view_dashboard')
+        ->label('Dashboard')
+        ->url(fn (School $record) => SchoolResource::getUrl('school-dashboard', ['record' => $record]))
+        ->icon('heroicon-o-chart-bar'),
+
+    Tables\Actions\DeleteAction::make()
+        ->visible(fn () => auth()->user()?->hasAnyRole(['owner', 'admin'])),
+])
+
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
@@ -63,6 +70,9 @@ class SchoolResource extends Resource
         return [
             'index' => Pages\ListSchools::route('/'),
             'create' => Pages\CreateSchool::route('/create'),
+'school-dashboard' => Pages\SchoolDashboards::route('/{record}/dashboard'),
+//         // ✅ Here’s the correct way to register a custom page
+//         // 'dashboard' => SchoolDashboard::class,
         ];
     }
 

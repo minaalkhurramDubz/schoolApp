@@ -128,37 +128,80 @@ class CourseResource extends Resource
             'edit' => Pages\EditCourse::route('/{record}/edit')];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery();
+//     public static function getEloquentQuery(): Builder
+//     {
+//         $query = parent::getEloquentQuery();
 
-        $user = auth()->user();
+//         $user = auth()->user();
 
-        // Owner and admin see all courses in their schools
-        if ($user->hasAnyRole(['owner', 'admin'])) {
-            $schoolIds = \DB::table('school_user')
-                ->where('user_id', $user->id)
-                ->pluck('school_id');
+//         // // Owner and admin see all courses in their schools
+//         // if ($user->hasAnyRole(['owner', 'admin'])) {
+//         //     $schoolIds = \DB::table('school_user')
+//         //         ->where('user_id', $user->id)
+//         //         ->pluck('school_id');
 
-            return $query->whereIn('school_id', $schoolIds);
+//         //     return $query->whereIn('school_id', $schoolIds);
+//         // }
+
+//         if ($user->hasAnyRole(['owner', 'admin'])) {
+//     $selectedSchoolId = session('selected_school_id');
+
+//     return $query->where('school_id', $selectedSchoolId);
+// }
+
+//         // Teachers see only courses they teach
+//         if ($user->hasRole('teacher')) {
+//             return $query->whereHas('teachers', function ($q) use ($user) {
+//                 $q->where('user_id', $user->id);
+//             });
+//         }
+
+//         // Teachers see only courses they teach
+//         if ($user->hasRole('student')) {
+//             return $query->whereHas('students', function ($q) use ($user) {
+//                 $q->where('user_id', $user->id);
+//             });
+//         }
+
+//         return $query->whereRaw('1=0');
+//     }
+
+
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = auth()->user();
+
+    // Owner and admin see courses for the selected school
+    if ($user->hasAnyRole(['owner', 'admin'])) {
+        $selectedSchoolId = session('selected_school_id');
+
+        if ($selectedSchoolId) {
+            return $query->where('school_id', $selectedSchoolId);
+        } else {
+            // fallback: show nothing if no school is selected
+            return $query->whereRaw('1=0');
         }
-
-        // Teachers see only courses they teach
-        if ($user->hasRole('teacher')) {
-            return $query->whereHas('teachers', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            });
-        }
-
-        // Teachers see only courses they teach
-        if ($user->hasRole('student')) {
-            return $query->whereHas('students', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            });
-        }
-
-        return $query->whereRaw('1=0');
     }
+
+    // Teachers see only the courses they teach
+    if ($user->hasRole('teacher')) {
+        return $query->whereHas('teachers', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        });
+    }
+
+    // Students see only the courses they are enrolled in
+    if ($user->hasRole('student')) {
+        return $query->whereHas('students', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        });
+    }
+
+    // Default fallback: show nothing
+    return $query->whereRaw('1=0');
+}
+
 
     public static function canViewAny(): bool
     {
